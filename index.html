@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Army Battles: Going Global</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+  body {
+    margin: 0; padding: 20px;
+    font-family: 'Inter', sans-serif;
+    background: #0a1a2f;
+    color: #eef2f7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+  }
+  h1 {
+    margin-bottom: 30px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+  }
+  /* Timeline container */
+  .timeline {
+    position: relative;
+    width: 85%;
+    max-width: 900px;
+    height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    overflow: visible;
+    box-shadow: inset 0 0 8px #114466;
+  }
+  /* The filling progress */
+  .progress {
+    height: 100%;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #00f260, #0575e6);
+    width: 0;
+    transition: width 1s ease-in-out;
+    box-shadow: 0 0 12px #00f260;
+    position: relative;
+    z-index: 2;
+  }
+  /* Milestone markers */
+  .milestone {
+    position: absolute;
+    top: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    box-shadow: 0 0 5px rgba(255,255,255,0.15);
+    transform: translateX(-50%);
+    transition: all 0.5s ease;
+    cursor: default;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #eef2f7;
+    font-size: 14px;
+    user-select: none;
+  }
+  /* Milestone active state */
+  .milestone.active {
+    background: #00f260;
+    box-shadow: 0 0 16px #00f260, 0 0 30px #00f260aa;
+    color: #003300;
+    font-weight: 900;
+    font-size: 15px;
+  }
+  /* Label below milestones */
+  .milestone-label {
+    position: absolute;
+    top: 38px;
+    font-size: 13px;
+    white-space: nowrap;
+    color: #a0d8a0;
+    transform: translateX(-50%);
+    font-weight: 600;
+    user-select: none;
+    z-index: 3;
+    width: max-content;
+    max-width: 120px;
+    text-align: center;
+  }
+  .milestone-label.active {
+    color: #00f260;
+    text-shadow: 0 0 6px #00f260aa;
+  }
+  /* Widgets container */
+  .widgets {
+    margin-top: 35px;
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 90%;
+    max-width: 900px;
+  }
+  /* Each widget */
+  .widget {
+    background: rgba(0,0,0,0.15);
+    border-radius: 10px;
+    padding: 18px 28px;
+    min-width: 140px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 18px;
+    user-select: none;
+    box-shadow: 0 0 8px rgba(0,0,0,0.3);
+    transition: background-color 0.3s ease;
+  }
+  /* Different widget colors */
+  .widget.days { color: #ffb347; }
+  .widget.godot { color: #3fa9f5; }
+  .widget.units { color: #7effa6; }
+  .widget.loc { color: #e86a6a; }
+
+  /* Table styles */
+  table {
+    margin-top: 60px;
+    width: 90%;
+    max-width: 900px;
+    border-collapse: collapse;
+    color: #eef2f7;
+    user-select: none;
+  }
+  table thead tr {
+    background: #005577;
+  }
+  table th, table td {
+    border: 1px solid #00f260;
+    padding: 10px 18px;
+    text-align: left;
+    font-size: 15px;
+  }
+  table tbody tr:nth-child(odd) {
+    background: rgba(0,242,96,0.12);
+  }
+  table tbody tr:hover {
+    background: rgba(0,242,96,0.25);
+  }
+
+  /* Particle container */
+  #particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+  }
+</style>
+</head>
+<body>
+<h1>Army Battles: Going Global</h1>
+
+<div class="timeline" id="timeline">
+  <div class="progress" id="progress"></div>
+</div>
+
+<div class="widgets" aria-label="Game statistics">
+  <div class="widget days" title="Days since project started"><span id="daysCount">0</span> days since start</div>
+  <div class="widget godot" title="Godot version used">Godot v<span id="godotVersion">4.4.1</span></div>
+  <div class="widget units" title="Current units count"><span id="unitsCount">0</span> units</div>
+  <div class="widget loc" title="Lines of code">~<span id="linesOfCode">0</span> lines of code</div>
+</div>
+
+<table aria-label="Unit list">
+  <thead>
+    <tr><th>Unit Name</th><th>Description</th></tr>
+  </thead>
+  <tbody id="unitTableBody">
+    <tr><td>Infantry</td><td>Basic foot soldier</td></tr>
+    <tr><td>Wall</td><td>Defensive structure</td></tr>
+    <tr><td>Knight</td><td>High size</td></tr>
+    <tr><td>Gnome</td><td>Small unit</td></tr>
+    <tr><td>Mountain Climber</td><td>Stronger on mountains</td></tr>
+    <tr><td>Ogre</td><td>50/50 chance to deal high damage</td></tr>
+    <tr><td>Gnome</td><td>Small unit</td></tr>
+    <tr><td>Stone Golem</td><td>Deals less damage with less health</td></tr>
+    <tr><td>Canopic Jar</td><td>Drops money on death</td></tr>
+    <tr><td>Obelisk</td><td>Defensive structure also deals damage</td></tr>
+    <tr><td>Cactus</td><td>Returns damage dealt on it</td></tr>
+  </tbody>
+</table>
+
+<canvas id="particles"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+  // Constants
+  const MAX_UNITS = 100;
+  const milestones = [
+    {value: 10, label: "Recruitment"},
+    {value: 25, label: "First Deployment"},
+    {value: 50, label: "Halfway There"},
+    {value: 80, label: "Major Victory"},
+    {value: 100, label: "Global Domination"}
+  ];
+
+  // Initial Data
+  const projectStartDate = new Date(2025, 6, 20); // months zero-based, July = 6
+  const godotVersion = "4.4.1";
+  const totalLinesOfCode = 1592;
+  let units = 10; // Set your current units here
+
+  // Elements
+  const timeline = document.getElementById('timeline');
+  const progressBar = document.getElementById('progress');
+  const daysCountEl = document.getElementById('daysCount');
+  const godotVersionEl = document.getElementById('godotVersion');
+  const unitsCountEl = document.getElementById('unitsCount');
+  const linesOfCodeEl = document.getElementById('linesOfCode');
+
+  // Add milestones to timeline
+  milestones.forEach(({value, label}) => {
+    const ms = document.createElement('div');
+    ms.className = 'milestone';
+    ms.style.left = (value / MAX_UNITS * 100) + '%';
+    ms.textContent = value;
+    timeline.appendChild(ms);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'milestone-label';
+    lbl.style.left = (value / MAX_UNITS * 100) + '%';
+    lbl.textContent = label;
+    timeline.appendChild(lbl);
+  });
+
+  // Calculate days since project start
+  function calculateDaysSinceStart() {
+    const now = new Date();
+    const diff = now - projectStartDate;
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
+  // Update widgets
+  function updateWidgets() {
+    daysCountEl.textContent = calculateDaysSinceStart();
+    godotVersionEl.textContent = godotVersion;
+    unitsCountEl.textContent = units;
+    linesOfCodeEl.textContent = totalLinesOfCode;
+  }
+
+  // Update timeline progress and milestones
+  function updateProgress() {
+    const percentage = Math.min(100, (units / MAX_UNITS) * 100);
+    progressBar.style.width = percentage + '%';
+
+    // Animate milestones
+    const milestonesEls = document.querySelectorAll('.milestone');
+    const labelsEls = document.querySelectorAll('.milestone-label');
+    milestonesEls.forEach((el, idx) => {
+      const milestoneValue = milestones[idx].value;
+      if (units >= milestoneValue) {
+        if (!el.classList.contains('active')) {
+          el.classList.add('active');
+          // Pop animation
+          el.animate([
+            { transform: 'translateX(-50%) scale(1)' },
+            { transform: 'translateX(-50%) scale(1.7)' },
+            { transform: 'translateX(-50%) scale(1.4)' }
+          ], {duration: 400, easing: 'ease-out'});
+          labelsEls[idx].classList.add('active');
+        }
+      } else {
+        el.classList.remove('active');
+        labelsEls[idx].classList.remove('active');
+      }
+    });
+
+    // Confetti on 100
+    if(units >= 100) {
+      launchConfetti();
+    }
+  }
+
+  // Confetti using canvas-confetti library
+  function launchConfetti() {
+    if (window.confettiLaunched) return;
+    window.confettiLaunched = true;
+
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    (function frame() {
+      confetti({
+        particleCount: 4,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#00f260', '#0575e6', '#00ffc8'],
+      });
+      confetti({
+        particleCount: 4,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#00f260', '#0575e6', '#00ffc8'],
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    })();
+  }
+
+  // Particle background
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = 1 + Math.random() * 2;
+      this.speedX = (Math.random() - 0.5) * 0.3;
+      this.speedY = (Math.random() - 0.5) * 0.3;
+      this.baseAlpha = 0.05 + Math.random() * 0.1;
+      this.alpha = this.baseAlpha;
+      this.colorHue = 160; // cyan-greenish
+    }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+
+      // Wrap around edges
+      if (this.x < 0) this.x = canvas.width;
+      else if (this.x > canvas.width) this.x = 0;
+      if (this.y < 0) this.y = canvas.height;
+      else if (this.y > canvas.height) this.y = 0;
+
+      // Pulse alpha
+      this.alpha += (Math.random() - 0.5) * 0.02;
+      this.alpha = Math.min(Math.max(this.alpha, 0.03), 0.3);
+    }
+    draw(progressPercent) {
+      // Adjust color brightness by progress percent
+      const brightness = 50 + 50 * (progressPercent / 100);
+      ctx.fillStyle = `hsla(${this.colorHue}, 100%, ${brightness}%, ${this.alpha})`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function initParticles() {
+    particles = [];
+    for(let i=0; i<120; i++) {
+      particles.push(new Particle());
+    }
+  }
+
+  function animateParticles(progressPercent) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.update();
+      p.draw(progressPercent);
+    });
+    requestAnimationFrame(() => animateParticles(progressPercent));
+  }
+
+  // Initialize
+  updateWidgets();
+  updateProgress();
+  initParticles();
+  animateParticles((units / MAX_UNITS) * 100);
+
+  // Simulate units changing every 3 seconds for demo
+  // Comment this out or replace with real data updates
+  /*
+  setInterval(() => {
+    units += 5;
+    if (units > 105) units = 0;
+    updateWidgets();
+    updateProgress();
+  }, 3000);
+  */
+</script>
+
+</body>
+</html>
